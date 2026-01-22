@@ -10,7 +10,7 @@ namespace JiraMcp.Tools;
 public static class IssueTools
 {
     [McpTool("jira_get_issue", "Gets a Jira issue by key or ID with full details including comments, attachments, and changelog")]
-    public static async Task<string> GetIssue(
+    public static string GetIssue(
         [McpParameter("The issue key (e.g., PROJ-123) or issue ID")] string issueKey,
         [McpParameter("Comma-separated list of fields to expand (e.g., changelog,renderedFields)", false)] string? expand = null)
     {
@@ -20,12 +20,12 @@ public static class IssueTools
             endpoint += $"?expand={expand}";
         }
 
-        var issue = await JiraClient.GetAsync<JiraIssue>(endpoint);
+        var issue = JiraClient.GetAsync<JiraIssue>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(issue);
     }
 
     [McpTool("jira_search_issues", "Searches for Jira issues using JQL (Jira Query Language)")]
-    public static async Task<string> SearchIssues(
+    public static string SearchIssues(
         [McpParameter("JQL query string (e.g., 'project = PROJ AND status = Open')")] string jql,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return (max 100)", false)] int maxResults = 50,
@@ -38,12 +38,12 @@ public static class IssueTools
             endpoint += $"&fields={fields}";
         }
 
-        var result = await JiraClient.GetAsync<SearchResult>(endpoint);
+        var result = JiraClient.GetAsync<SearchResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_create_issue", "Creates a new Jira issue")]
-    public static async Task<string> CreateIssue(
+    public static string CreateIssue(
         [McpParameter("Project key (e.g., PROJ)")] string projectKey,
         [McpParameter("Issue type name (e.g., Bug, Task, Story)")] string issueType,
         [McpParameter("Issue summary/title")] string summary,
@@ -83,12 +83,12 @@ public static class IssueTools
             }
         };
 
-        var result = await JiraClient.PostAsync<CreateIssueResponse>("issue", request);
+        var result = JiraClient.PostAsync<CreateIssueResponse>("issue", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_update_issue", "Updates an existing Jira issue")]
-    public static async Task<string> UpdateIssue(
+    public static string UpdateIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("New summary/title", false)] string? summary = null,
         [McpParameter("New description", false)] string? description = null,
@@ -119,12 +119,12 @@ public static class IssueTools
             }
         };
 
-        await JiraClient.PutAsync<object>($"issue/{issueKey}", request);
+        JiraClient.PutAsync<object>($"issue/{issueKey}", request).GetAwaiter().GetResult();
         return $"Issue {issueKey} updated successfully";
     }
 
     [McpTool("jira_delete_issue", "Deletes a Jira issue")]
-    public static async Task<string> DeleteIssue(
+    public static string DeleteIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Whether to delete subtasks as well", false)] bool deleteSubtasks = false)
     {
@@ -134,20 +134,20 @@ public static class IssueTools
             endpoint += "?deleteSubtasks=true";
         }
 
-        await JiraClient.DeleteAsync(endpoint);
+        JiraClient.DeleteAsync(endpoint).GetAwaiter().GetResult();
         return $"Issue {issueKey} deleted successfully";
     }
 
     [McpTool("jira_get_transitions", "Gets available status transitions for an issue")]
-    public static async Task<string> GetTransitions(
+    public static string GetTransitions(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var result = await JiraClient.GetAsync<TransitionsResult>($"issue/{issueKey}/transitions");
+        var result = JiraClient.GetAsync<TransitionsResult>($"issue/{issueKey}/transitions").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_transition_issue", "Transitions an issue to a new status")]
-    public static async Task<string> TransitionIssue(
+    public static string TransitionIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("The transition ID (get from jira_get_transitions)")] string transitionId,
         [McpParameter("Resolution name if transitioning to a resolved status", false)] string? resolution = null)
@@ -158,12 +158,12 @@ public static class IssueTools
             fields = resolution != null ? new { resolution = new { name = resolution } } : null
         };
 
-        await JiraClient.PostAsync<object>($"issue/{issueKey}/transitions", request);
+        JiraClient.PostAsync<object>($"issue/{issueKey}/transitions", request).GetAwaiter().GetResult();
         return $"Issue {issueKey} transitioned successfully";
     }
 
     [McpTool("jira_assign_issue", "Assigns an issue to a user")]
-    public static async Task<string> AssignIssue(
+    public static string AssignIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Account ID (Cloud) or username (Data Center) of assignee. Use '-1' for automatic or null to unassign", false)] string? assignee = null)
     {
@@ -178,14 +178,14 @@ public static class IssueTools
             request = new { name = assignee == "-1" ? "-1" : assignee };
         }
 
-        await JiraClient.PutAsync<object>($"issue/{issueKey}/assignee", request);
+        JiraClient.PutAsync<object>($"issue/{issueKey}/assignee", request).GetAwaiter().GetResult();
         return assignee == null 
             ? $"Issue {issueKey} unassigned" 
             : $"Issue {issueKey} assigned to {assignee}";
     }
 
     [McpTool("jira_add_labels", "Adds labels to an issue")]
-    public static async Task<string> AddLabels(
+    public static string AddLabels(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comma-separated list of labels to add")] string labels)
     {
@@ -199,12 +199,12 @@ public static class IssueTools
             }
         };
 
-        await JiraClient.PutAsync<object>($"issue/{issueKey}", request);
+        JiraClient.PutAsync<object>($"issue/{issueKey}", request).GetAwaiter().GetResult();
         return $"Labels added to issue {issueKey}";
     }
 
     [McpTool("jira_remove_labels", "Removes labels from an issue")]
-    public static async Task<string> RemoveLabels(
+    public static string RemoveLabels(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comma-separated list of labels to remove")] string labels)
     {
@@ -218,12 +218,12 @@ public static class IssueTools
             }
         };
 
-        await JiraClient.PutAsync<object>($"issue/{issueKey}", request);
+        JiraClient.PutAsync<object>($"issue/{issueKey}", request).GetAwaiter().GetResult();
         return $"Labels removed from issue {issueKey}";
     }
 
     [McpTool("jira_link_issues", "Creates a link between two issues")]
-    public static async Task<string> LinkIssues(
+    public static string LinkIssues(
         [McpParameter("The type of link (e.g., 'Blocks', 'is blocked by', 'relates to')")] string linkType,
         [McpParameter("The inward issue key (the issue that is affected)")] string inwardIssue,
         [McpParameter("The outward issue key (the issue that causes the effect)")] string outwardIssue,
@@ -237,27 +237,27 @@ public static class IssueTools
             comment = comment != null ? new { body = comment } : null
         };
 
-        await JiraClient.PostAsync<object>("issueLink", request);
+        JiraClient.PostAsync<object>("issueLink", request).GetAwaiter().GetResult();
         return $"Linked {inwardIssue} to {outwardIssue} with relationship '{linkType}'";
     }
 
     [McpTool("jira_get_link_types", "Gets all available issue link types")]
-    public static async Task<string> GetLinkTypes()
+    public static string GetLinkTypes()
     {
-        var result = await JiraClient.GetAsync<object>("issueLinkType");
+        var result = JiraClient.GetAsync<object>("issueLinkType").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_watch_issue", "Adds the current user as a watcher to an issue")]
-    public static async Task<string> WatchIssue(
+    public static string WatchIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        await JiraClient.PostAsync<object>($"issue/{issueKey}/watchers", null);
+        JiraClient.PostAsync<object>($"issue/{issueKey}/watchers", null).GetAwaiter().GetResult();
         return $"Now watching issue {issueKey}";
     }
 
     [McpTool("jira_unwatch_issue", "Removes the current user from watchers of an issue")]
-    public static async Task<string> UnwatchIssue(
+    public static string UnwatchIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Account ID (Cloud) or username (Data Center) to remove. Defaults to current user.", false)] string? user = null)
     {
@@ -267,42 +267,42 @@ public static class IssueTools
             endpoint += $"?{(JiraClient.IsCloud ? "accountId" : "username")}={user}";
         }
         
-        await JiraClient.DeleteAsync(endpoint);
+        JiraClient.DeleteAsync(endpoint).GetAwaiter().GetResult();
         return $"Stopped watching issue {issueKey}";
     }
 
     [McpTool("jira_get_watchers", "Gets the list of watchers for an issue")]
-    public static async Task<string> GetWatchers(
+    public static string GetWatchers(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var result = await JiraClient.GetAsync<object>($"issue/{issueKey}/watchers");
+        var result = JiraClient.GetAsync<object>($"issue/{issueKey}/watchers").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_vote_issue", "Adds a vote to an issue")]
-    public static async Task<string> VoteIssue(
+    public static string VoteIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        await JiraClient.PostAsync<object>($"issue/{issueKey}/votes", null);
+        JiraClient.PostAsync<object>($"issue/{issueKey}/votes", null).GetAwaiter().GetResult();
         return $"Voted for issue {issueKey}";
     }
 
     [McpTool("jira_unvote_issue", "Removes a vote from an issue")]
-    public static async Task<string> UnvoteIssue(
+    public static string UnvoteIssue(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        await JiraClient.DeleteAsync($"issue/{issueKey}/votes");
+        JiraClient.DeleteAsync($"issue/{issueKey}/votes").GetAwaiter().GetResult();
         return $"Removed vote from issue {issueKey}";
     }
 
     [McpTool("jira_get_changelog", "Gets the changelog/history of an issue")]
-    public static async Task<string> GetChangelog(
+    public static string GetChangelog(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 100)
     {
-        var issue = await JiraClient.GetAsync<JiraIssue>(
-            $"issue/{issueKey}?expand=changelog&startAt={startAt}&maxResults={maxResults}");
+        var issue = JiraClient.GetAsync<JiraIssue>(
+            $"issue/{issueKey}?expand=changelog&startAt={startAt}&maxResults={maxResults}").GetAwaiter().GetResult();
         return JiraClient.ToJson(issue?.Changelog);
     }
 }

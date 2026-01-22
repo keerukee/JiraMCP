@@ -10,38 +10,38 @@ namespace JiraMcp.Tools;
 public static class ServerTools
 {
     [McpTool("jira_get_server_info", "Gets information about the Jira instance")]
-    public static async Task<string> GetServerInfo()
+    public static string GetServerInfo()
     {
-        var result = await JiraClient.GetAsync<ServerInfo>("serverInfo");
+        var result = JiraClient.GetAsync<ServerInfo>("serverInfo").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_fields", "Gets all available fields in the Jira instance")]
-    public static async Task<string> GetFields()
+    public static string GetFields()
     {
-        var result = await JiraClient.GetAsync<List<JiraField>>("field");
+        var result = JiraClient.GetAsync<List<JiraField>>("field").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_custom_fields", "Gets all custom fields in the Jira instance")]
-    public static async Task<string> GetCustomFields()
+    public static string GetCustomFields()
     {
-        var fields = await JiraClient.GetAsync<List<JiraField>>("field");
+        var fields = JiraClient.GetAsync<List<JiraField>>("field").GetAwaiter().GetResult();
         var customFields = fields?.Where(f => f.Custom == true).ToList();
         return JiraClient.ToJson(customFields);
     }
 
     [McpTool("jira_validate_jql", "Validates a JQL query for syntax errors")]
-    public static async Task<string> ValidateJql(
+    public static string ValidateJql(
         [McpParameter("JQL query to validate")] string jql)
     {
         var request = new { queries = new[] { jql } };
-        var result = await JiraClient.PostAsync<object>("jql/parse", request);
+        var result = JiraClient.PostAsync<object>("jql/parse", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_autocomplete_suggestions", "Gets JQL autocomplete suggestions")]
-    public static async Task<string> GetAutocompleteSuggestions(
+    public static string GetAutocompleteSuggestions(
         [McpParameter("Field name to get suggestions for")] string fieldName,
         [McpParameter("Value prefix to filter suggestions", false)] string? fieldValue = null)
     {
@@ -52,16 +52,16 @@ public static class ServerTools
             endpoint += $"&fieldValue={Uri.EscapeDataString(fieldValue)}";
         }
 
-        var result = await JiraClient.GetAsync<object>(endpoint);
+        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_check_connection", "Checks if the Jira connection is working")]
-    public static async Task<string> CheckConnection()
+    public static string CheckConnection()
     {
         try
         {
-            var user = await JiraClient.GetAsync<JiraUser>("myself");
+            var user = JiraClient.GetAsync<JiraUser>("myself").GetAwaiter().GetResult();
             return JiraClient.ToJson(new
             {
                 connected = true,

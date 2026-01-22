@@ -12,7 +12,7 @@ public static class AgileTools
     #region Board Operations
 
     [McpTool("jira_list_boards", "Lists all agile boards")]
-    public static async Task<string> ListBoards(
+    public static string ListBoards(
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
         [McpParameter("Filter by board type (scrum, kanban)", false)] string? type = null,
@@ -36,28 +36,28 @@ public static class AgileTools
             endpoint += $"&projectKeyOrId={Uri.EscapeDataString(projectKeyOrId)}";
         }
 
-        var result = await JiraClient.GetAgileAsync<BoardsResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<BoardsResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_board", "Gets details of a specific board")]
-    public static async Task<string> GetBoard(
+    public static string GetBoard(
         [McpParameter("Board ID")] int boardId)
     {
-        var result = await JiraClient.GetAgileAsync<JiraBoard>($"board/{boardId}");
+        var result = JiraClient.GetAgileAsync<JiraBoard>($"board/{boardId}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_board_configuration", "Gets the configuration of a board")]
-    public static async Task<string> GetBoardConfiguration(
+    public static string GetBoardConfiguration(
         [McpParameter("Board ID")] int boardId)
     {
-        var result = await JiraClient.GetAgileAsync<object>($"board/{boardId}/configuration");
+        var result = JiraClient.GetAgileAsync<object>($"board/{boardId}/configuration").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_board_issues", "Gets all issues on a board")]
-    public static async Task<string> GetBoardIssues(
+    public static string GetBoardIssues(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -76,7 +76,7 @@ public static class AgileTools
             endpoint += $"&fields={fields}";
         }
 
-        var result = await JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
@@ -85,7 +85,7 @@ public static class AgileTools
     #region Sprint Operations
 
     [McpTool("jira_list_sprints", "Lists all sprints for a board")]
-    public static async Task<string> ListSprints(
+    public static string ListSprints(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -98,20 +98,20 @@ public static class AgileTools
             endpoint += $"&state={state}";
         }
 
-        var result = await JiraClient.GetAgileAsync<SprintsResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<SprintsResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_sprint", "Gets details of a specific sprint")]
-    public static async Task<string> GetSprint(
+    public static string GetSprint(
         [McpParameter("Sprint ID")] int sprintId)
     {
-        var result = await JiraClient.GetAgileAsync<JiraSprint>($"sprint/{sprintId}");
+        var result = JiraClient.GetAgileAsync<JiraSprint>($"sprint/{sprintId}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_create_sprint", "Creates a new sprint")]
-    public static async Task<string> CreateSprint(
+    public static string CreateSprint(
         [McpParameter("Sprint name")] string name,
         [McpParameter("Board ID to create sprint on")] int originBoardId,
         [McpParameter("Sprint start date (ISO format)", false)] string? startDate = null,
@@ -128,12 +128,12 @@ public static class AgileTools
         if (!string.IsNullOrEmpty(endDate)) request["endDate"] = endDate;
         if (!string.IsNullOrEmpty(goal)) request["goal"] = goal;
 
-        var result = await JiraClient.PostAgileAsync<JiraSprint>("sprint", request);
+        var result = JiraClient.PostAgileAsync<JiraSprint>("sprint", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_update_sprint", "Updates a sprint")]
-    public static async Task<string> UpdateSprint(
+    public static string UpdateSprint(
         [McpParameter("Sprint ID")] int sprintId,
         [McpParameter("New sprint name", false)] string? name = null,
         [McpParameter("New state (future, active, closed)", false)] string? state = null,
@@ -150,12 +150,12 @@ public static class AgileTools
         if (!string.IsNullOrEmpty(goal)) request["goal"] = goal;
 
         // Agile API uses POST for partial updates
-        var result = await JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request);
+        var result = JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_start_sprint", "Starts a sprint")]
-    public static async Task<string> StartSprint(
+    public static string StartSprint(
         [McpParameter("Sprint ID")] int sprintId,
         [McpParameter("Sprint end date (ISO format). Required.")] string endDate,
         [McpParameter("Sprint start date (ISO format). Defaults to now.", false)] string? startDate = null)
@@ -167,12 +167,12 @@ public static class AgileTools
             ["endDate"] = endDate
         };
 
-        var result = await JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request);
+        var result = JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_close_sprint", "Closes/completes a sprint")]
-    public static async Task<string> CloseSprint(
+    public static string CloseSprint(
         [McpParameter("Sprint ID")] int sprintId,
         [McpParameter("Complete date (ISO format). Defaults to now.", false)] string? completeDate = null)
     {
@@ -182,20 +182,20 @@ public static class AgileTools
             ["completeDate"] = completeDate ?? DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
         };
 
-        var result = await JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request);
+        var result = JiraClient.PostAgileAsync<JiraSprint>($"sprint/{sprintId}", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_delete_sprint", "Deletes a sprint")]
-    public static async Task<string> DeleteSprint(
+    public static string DeleteSprint(
         [McpParameter("Sprint ID")] int sprintId)
     {
-        await JiraClient.DeleteAgileAsync($"sprint/{sprintId}");
+        JiraClient.DeleteAgileAsync($"sprint/{sprintId}").GetAwaiter().GetResult();
         return $"Sprint {sprintId} deleted";
     }
 
     [McpTool("jira_get_sprint_issues", "Gets all issues in a sprint")]
-    public static async Task<string> GetSprintIssues(
+    public static string GetSprintIssues(
         [McpParameter("Sprint ID")] int sprintId,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -214,30 +214,30 @@ public static class AgileTools
             endpoint += $"&fields={fields}";
         }
 
-        var result = await JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_move_issues_to_sprint", "Moves issues to a sprint")]
-    public static async Task<string> MoveIssuesToSprint(
+    public static string MoveIssuesToSprint(
         [McpParameter("Sprint ID")] int sprintId,
         [McpParameter("Comma-separated list of issue keys to move")] string issueKeys)
     {
         var keys = issueKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         
         var request = new { issues = keys };
-        await JiraClient.PostAgileAsync<object>($"sprint/{sprintId}/issue", request);
+        JiraClient.PostAgileAsync<object>($"sprint/{sprintId}/issue", request).GetAwaiter().GetResult();
         return $"Moved {keys.Count} issue(s) to sprint {sprintId}";
     }
 
     [McpTool("jira_get_sprint_report", "Gets the sprint report for a completed sprint")]
-    public static async Task<string> GetSprintReport(
+    public static string GetSprintReport(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Sprint ID")] int sprintId)
     {
         // Note: This endpoint is available in Jira Software but not in the standard Agile API
-        var result = await JiraClient.GetAsync<object>(
-            $"/rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId={boardId}&sprintId={sprintId}");
+        var result = JiraClient.GetAsync<object>(
+            $"/rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId={boardId}&sprintId={sprintId}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
@@ -246,7 +246,7 @@ public static class AgileTools
     #region Backlog Operations
 
     [McpTool("jira_get_backlog", "Gets issues in the backlog for a board")]
-    public static async Task<string> GetBacklog(
+    public static string GetBacklog(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -265,18 +265,18 @@ public static class AgileTools
             endpoint += $"&fields={fields}";
         }
 
-        var result = await JiraClient.GetAgileAsync<BacklogIssuesResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<BacklogIssuesResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_move_issues_to_backlog", "Moves issues to the backlog")]
-    public static async Task<string> MoveIssuesToBacklog(
+    public static string MoveIssuesToBacklog(
         [McpParameter("Comma-separated list of issue keys to move to backlog")] string issueKeys)
     {
         var keys = issueKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         
         var request = new { issues = keys };
-        await JiraClient.PostAgileAsync<object>("backlog/issue", request);
+        JiraClient.PostAgileAsync<object>("backlog/issue", request).GetAwaiter().GetResult();
         return $"Moved {keys.Count} issue(s) to backlog";
     }
 
@@ -285,7 +285,7 @@ public static class AgileTools
     #region Epic Operations
 
     [McpTool("jira_list_epics", "Lists all epics on a board")]
-    public static async Task<string> ListEpics(
+    public static string ListEpics(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -298,20 +298,20 @@ public static class AgileTools
             endpoint += $"&done={done.Value.ToString().ToLower()}";
         }
 
-        var result = await JiraClient.GetAgileAsync<object>(endpoint);
+        var result = JiraClient.GetAgileAsync<object>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_epic", "Gets details of a specific epic")]
-    public static async Task<string> GetEpic(
+    public static string GetEpic(
         [McpParameter("Epic ID or key")] string epicIdOrKey)
     {
-        var result = await JiraClient.GetAgileAsync<JiraEpic>($"epic/{epicIdOrKey}");
+        var result = JiraClient.GetAgileAsync<JiraEpic>($"epic/{epicIdOrKey}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_epic_issues", "Gets all issues belonging to an epic")]
-    public static async Task<string> GetEpicIssues(
+    public static string GetEpicIssues(
         [McpParameter("Epic ID or key")] string epicIdOrKey,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -330,35 +330,35 @@ public static class AgileTools
             endpoint += $"&fields={fields}";
         }
 
-        var result = await JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint);
+        var result = JiraClient.GetAgileAsync<SprintIssuesResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_move_issues_to_epic", "Moves issues to an epic")]
-    public static async Task<string> MoveIssuesToEpic(
+    public static string MoveIssuesToEpic(
         [McpParameter("Epic ID or key")] string epicIdOrKey,
         [McpParameter("Comma-separated list of issue keys to move")] string issueKeys)
     {
         var keys = issueKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         
         var request = new { issues = keys };
-        await JiraClient.PostAgileAsync<object>($"epic/{epicIdOrKey}/issue", request);
+        JiraClient.PostAgileAsync<object>($"epic/{epicIdOrKey}/issue", request).GetAwaiter().GetResult();
         return $"Moved {keys.Count} issue(s) to epic {epicIdOrKey}";
     }
 
     [McpTool("jira_remove_issues_from_epic", "Removes issues from their epic (moves to backlog)")]
-    public static async Task<string> RemoveIssuesFromEpic(
+    public static string RemoveIssuesFromEpic(
         [McpParameter("Comma-separated list of issue keys to remove from epic")] string issueKeys)
     {
         var keys = issueKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         
         var request = new { issues = keys };
-        await JiraClient.PostAgileAsync<object>("epic/none/issue", request);
+        JiraClient.PostAgileAsync<object>("epic/none/issue", request).GetAwaiter().GetResult();
         return $"Removed {keys.Count} issue(s) from their epic";
     }
 
     [McpTool("jira_rank_epics", "Ranks an epic relative to another epic")]
-    public static async Task<string> RankEpics(
+    public static string RankEpics(
         [McpParameter("Epic ID or key to rank")] string epicIdOrKey,
         [McpParameter("Epic ID or key to rank before", false)] string? rankBeforeEpic = null,
         [McpParameter("Epic ID or key to rank after", false)] string? rankAfterEpic = null)
@@ -374,7 +374,7 @@ public static class AgileTools
             request["rankAfterEpic"] = rankAfterEpic;
         }
 
-        await JiraClient.PutAsync<object>($"/rest/agile/1.0/epic/{epicIdOrKey}/rank", request);
+        JiraClient.PutAsync<object>($"/rest/agile/1.0/epic/{epicIdOrKey}/rank", request).GetAwaiter().GetResult();
         return $"Epic {epicIdOrKey} ranked successfully";
     }
 
@@ -383,7 +383,7 @@ public static class AgileTools
     #region Issue Ranking
 
     [McpTool("jira_rank_issues", "Ranks issues relative to each other")]
-    public static async Task<string> RankIssues(
+    public static string RankIssues(
         [McpParameter("Comma-separated list of issue keys to rank")] string issueKeys,
         [McpParameter("Issue key to rank before", false)] string? rankBeforeIssue = null,
         [McpParameter("Issue key to rank after", false)] string? rankAfterIssue = null)
@@ -404,7 +404,7 @@ public static class AgileTools
             request["rankAfterIssue"] = rankAfterIssue;
         }
 
-        await JiraClient.PutAsync<object>("/rest/agile/1.0/issue/rank", request);
+        JiraClient.PutAsync<object>("/rest/agile/1.0/issue/rank", request).GetAwaiter().GetResult();
         return $"Ranked {keys.Count} issue(s) successfully";
     }
 
@@ -413,23 +413,23 @@ public static class AgileTools
     #region Velocity and Burndown
 
     [McpTool("jira_get_velocity_chart", "Gets velocity chart data for a board")]
-    public static async Task<string> GetVelocityChart(
+    public static string GetVelocityChart(
         [McpParameter("Board ID")] int boardId)
     {
         // Note: This uses the Greenhopper API which may not be available on all installations
-        var result = await JiraClient.GetAsync<object>(
-            $"/rest/greenhopper/1.0/rapid/charts/velocity?rapidViewId={boardId}");
+        var result = JiraClient.GetAsync<object>(
+            $"/rest/greenhopper/1.0/rapid/charts/velocity?rapidViewId={boardId}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_burndown_chart", "Gets burndown chart data for a sprint")]
-    public static async Task<string> GetBurndownChart(
+    public static string GetBurndownChart(
         [McpParameter("Board ID")] int boardId,
         [McpParameter("Sprint ID")] int sprintId)
     {
         // Note: This uses the Greenhopper API which may not be available on all installations
-        var result = await JiraClient.GetAsync<object>(
-            $"/rest/greenhopper/1.0/rapid/charts/scopechangeburndownchart?rapidViewId={boardId}&sprintId={sprintId}");
+        var result = JiraClient.GetAsync<object>(
+            $"/rest/greenhopper/1.0/rapid/charts/scopechangeburndownchart?rapidViewId={boardId}&sprintId={sprintId}").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 

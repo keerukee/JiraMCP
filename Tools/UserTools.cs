@@ -10,14 +10,14 @@ namespace JiraMcp.Tools;
 public static class UserTools
 {
     [McpTool("jira_get_current_user", "Gets information about the currently authenticated user")]
-    public static async Task<string> GetCurrentUser()
+    public static string GetCurrentUser()
     {
-        var result = await JiraClient.GetAsync<JiraUser>("myself");
+        var result = JiraClient.GetAsync<JiraUser>("myself").GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_user", "Gets information about a specific user")]
-    public static async Task<string> GetUser(
+    public static string GetUser(
         [McpParameter("Account ID (Cloud) or username/key (Data Center)")] string userIdentifier)
     {
         string endpoint;
@@ -32,12 +32,12 @@ public static class UserTools
             endpoint = $"user?username={Uri.EscapeDataString(userIdentifier)}";
         }
 
-        var result = await JiraClient.GetAsync<JiraUser>(endpoint);
+        var result = JiraClient.GetAsync<JiraUser>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_search_users", "Searches for users by name, email, or username")]
-    public static async Task<string> SearchUsers(
+    public static string SearchUsers(
         [McpParameter("Search query (name, email, or username)")] string query,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50)
@@ -55,12 +55,12 @@ public static class UserTools
             endpoint = $"user/search?username={Uri.EscapeDataString(query)}&startAt={startAt}&maxResults={maxResults}";
         }
 
-        var result = await JiraClient.GetAsync<List<JiraUser>>(endpoint);
+        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_find_users_assignable_to_projects", "Finds users that can be assigned to issues in specified projects")]
-    public static async Task<string> FindAssignableUsers(
+    public static string FindAssignableUsers(
         [McpParameter("Project key(s), comma-separated for multiple")] string projectKeys,
         [McpParameter("Username or name to filter by", false)] string? query = null,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
@@ -73,12 +73,12 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = await JiraClient.GetAsync<List<JiraUser>>(endpoint);
+        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_find_users_assignable_to_issue", "Finds users that can be assigned to a specific issue")]
-    public static async Task<string> FindUsersAssignableToIssue(
+    public static string FindUsersAssignableToIssue(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Username or name to filter by", false)] string? query = null,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
@@ -91,24 +91,24 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = await JiraClient.GetAsync<List<JiraUser>>(endpoint);
+        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_users_from_group", "Gets all users in a specific group")]
-    public static async Task<string> GetUsersFromGroup(
+    public static string GetUsersFromGroup(
         [McpParameter("Group name")] string groupName,
         [McpParameter("Whether to include inactive users", false)] bool includeInactiveUsers = false,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50)
     {
         var endpoint = $"group/member?groupname={Uri.EscapeDataString(groupName)}&includeInactiveUsers={includeInactiveUsers}&startAt={startAt}&maxResults={maxResults}";
-        var result = await JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint);
+        var result = JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_groups", "Gets all groups in Jira")]
-    public static async Task<string> GetGroups(
+    public static string GetGroups(
         [McpParameter("Filter groups by name containing this string", false)] string? query = null,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50)
@@ -120,12 +120,12 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = await JiraClient.GetAsync<object>(endpoint);
+        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_add_user_to_group", "Adds a user to a group (requires admin permissions)")]
-    public static async Task<string> AddUserToGroup(
+    public static string AddUserToGroup(
         [McpParameter("Group name")] string groupName,
         [McpParameter("Account ID (Cloud) or username (Data Center)")] string userIdentifier)
     {
@@ -140,12 +140,12 @@ public static class UserTools
             request = new { name = userIdentifier };
         }
 
-        await JiraClient.PostAsync<object>($"group/user?groupname={Uri.EscapeDataString(groupName)}", request);
+        JiraClient.PostAsync<object>($"group/user?groupname={Uri.EscapeDataString(groupName)}", request).GetAwaiter().GetResult();
         return $"User {userIdentifier} added to group {groupName}";
     }
 
     [McpTool("jira_remove_user_from_group", "Removes a user from a group (requires admin permissions)")]
-    public static async Task<string> RemoveUserFromGroup(
+    public static string RemoveUserFromGroup(
         [McpParameter("Group name")] string groupName,
         [McpParameter("Account ID (Cloud) or username (Data Center)")] string userIdentifier)
     {
@@ -160,12 +160,12 @@ public static class UserTools
             endpoint = $"group/user?groupname={Uri.EscapeDataString(groupName)}&username={Uri.EscapeDataString(userIdentifier)}";
         }
 
-        await JiraClient.DeleteAsync(endpoint);
+        JiraClient.DeleteAsync(endpoint).GetAwaiter().GetResult();
         return $"User {userIdentifier} removed from group {groupName}";
     }
 
     [McpTool("jira_find_users_with_permissions", "Finds users with specific permissions on a project or issue")]
-    public static async Task<string> FindUsersWithPermissions(
+    public static string FindUsersWithPermissions(
         [McpParameter("Comma-separated list of permission names (e.g., BROWSE_PROJECTS,EDIT_ISSUES)")] string permissions,
         [McpParameter("Project key to check permissions for", false)] string? projectKey = null,
         [McpParameter("Issue key to check permissions for", false)] string? issueKey = null,
@@ -190,12 +190,12 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = await JiraClient.GetAsync<List<JiraUser>>(endpoint);
+        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_user_permissions", "Gets permissions the current user has globally or on a specific project/issue")]
-    public static async Task<string> GetMyPermissions(
+    public static string GetMyPermissions(
         [McpParameter("Project key to check permissions for", false)] string? projectKey = null,
         [McpParameter("Issue key to check permissions for", false)] string? issueKey = null)
     {
@@ -217,12 +217,12 @@ public static class UserTools
             endpoint += "?" + string.Join("&", queryParams);
         }
 
-        var result = await JiraClient.GetAsync<object>(endpoint);
+        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_bulk_get_users", "Gets multiple users by their account IDs (Cloud) or usernames (Data Center)")]
-    public static async Task<string> BulkGetUsers(
+    public static string BulkGetUsers(
         [McpParameter("Comma-separated list of account IDs (Cloud) or usernames (Data Center)")] string userIdentifiers,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50)
@@ -233,7 +233,7 @@ public static class UserTools
         {
             var accountIds = string.Join("&accountId=", identifiers.Select(Uri.EscapeDataString));
             var endpoint = $"user/bulk?accountId={accountIds}&startAt={startAt}&maxResults={maxResults}";
-            var result = await JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint);
+            var result = JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint).GetAwaiter().GetResult();
             return JiraClient.ToJson(result);
         }
         else
@@ -242,7 +242,7 @@ public static class UserTools
             var users = new List<JiraUser>();
             foreach (var username in identifiers)
             {
-                var user = await JiraClient.GetAsync<JiraUser>($"user?username={Uri.EscapeDataString(username)}");
+                var user = JiraClient.GetAsync<JiraUser>($"user?username={Uri.EscapeDataString(username)}").GetAwaiter().GetResult();
                 if (user != null)
                 {
                     users.Add(user);

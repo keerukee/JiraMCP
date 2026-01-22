@@ -10,7 +10,7 @@ namespace JiraMcp.Tools;
 public static class CommentTools
 {
     [McpTool("jira_get_comments", "Gets all comments on an issue")]
-    public static async Task<string> GetComments(
+    public static string GetComments(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 50,
@@ -29,12 +29,12 @@ public static class CommentTools
             endpoint += "&expand=renderedBody";
         }
 
-        var result = await JiraClient.GetAsync<CommentContainer>(endpoint);
+        var result = JiraClient.GetAsync<CommentContainer>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_comment", "Gets a specific comment by ID")]
-    public static async Task<string> GetComment(
+    public static string GetComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comment ID")] string commentId,
         [McpParameter("Expand rendered body", false)] bool expand = false)
@@ -46,12 +46,12 @@ public static class CommentTools
             endpoint += "?expand=renderedBody";
         }
 
-        var result = await JiraClient.GetAsync<JiraComment>(endpoint);
+        var result = JiraClient.GetAsync<JiraComment>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_add_comment", "Adds a comment to an issue")]
-    public static async Task<string> AddComment(
+    public static string AddComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comment body text")] string body,
         [McpParameter("Visibility type ('role' or 'group')", false)] string? visibilityType = null,
@@ -71,12 +71,12 @@ public static class CommentTools
             };
         }
 
-        var result = await JiraClient.PostAsync<JiraComment>($"issue/{issueKey}/comment", request);
+        var result = JiraClient.PostAsync<JiraComment>($"issue/{issueKey}/comment", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_update_comment", "Updates an existing comment")]
-    public static async Task<string> UpdateComment(
+    public static string UpdateComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comment ID")] string commentId,
         [McpParameter("New comment body text")] string body,
@@ -97,16 +97,16 @@ public static class CommentTools
             };
         }
 
-        var result = await JiraClient.PutAsync<JiraComment>($"issue/{issueKey}/comment/{commentId}", request);
+        var result = JiraClient.PutAsync<JiraComment>($"issue/{issueKey}/comment/{commentId}", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_delete_comment", "Deletes a comment from an issue")]
-    public static async Task<string> DeleteComment(
+    public static string DeleteComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comment ID")] string commentId)
     {
-        await JiraClient.DeleteAsync($"issue/{issueKey}/comment/{commentId}");
+        JiraClient.DeleteAsync($"issue/{issueKey}/comment/{commentId}").GetAwaiter().GetResult();
         return $"Comment {commentId} deleted from issue {issueKey}";
     }
 }

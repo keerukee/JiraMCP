@@ -10,7 +10,7 @@ namespace JiraMcp.Tools;
 public static class FilterTools
 {
     [McpTool("jira_list_filters", "Lists filters owned by or shared with the current user")]
-    public static async Task<string> ListFilters(
+    public static string ListFilters(
         [McpParameter("Filter by filter name containing this string", false)] string? filterName = null,
         [McpParameter("Filter by owner account ID (Cloud) or username (Data Center)", false)] string? owner = null,
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
@@ -41,12 +41,12 @@ public static class FilterTools
             endpoint += $"&expand={expand}";
         }
 
-        var result = await JiraClient.GetAsync<PagedResult<JiraFilter>>(endpoint);
+        var result = JiraClient.GetAsync<PagedResult<JiraFilter>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_filter", "Gets a specific filter by ID")]
-    public static async Task<string> GetFilter(
+    public static string GetFilter(
         [McpParameter("Filter ID")] string filterId,
         [McpParameter("Comma-separated fields to expand", false)] string? expand = null)
     {
@@ -57,12 +57,12 @@ public static class FilterTools
             endpoint += $"?expand={expand}";
         }
 
-        var result = await JiraClient.GetAsync<JiraFilter>(endpoint);
+        var result = JiraClient.GetAsync<JiraFilter>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_create_filter", "Creates a new filter")]
-    public static async Task<string> CreateFilter(
+    public static string CreateFilter(
         [McpParameter("Filter name")] string name,
         [McpParameter("JQL query for the filter")] string jql,
         [McpParameter("Filter description", false)] string? description = null,
@@ -80,12 +80,12 @@ public static class FilterTools
             request["description"] = description;
         }
 
-        var result = await JiraClient.PostAsync<JiraFilter>("filter", request);
+        var result = JiraClient.PostAsync<JiraFilter>("filter", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_update_filter", "Updates an existing filter")]
-    public static async Task<string> UpdateFilter(
+    public static string UpdateFilter(
         [McpParameter("Filter ID")] string filterId,
         [McpParameter("New filter name", false)] string? name = null,
         [McpParameter("New JQL query", false)] string? jql = null,
@@ -99,20 +99,20 @@ public static class FilterTools
         if (!string.IsNullOrEmpty(description)) request["description"] = description;
         if (favourite.HasValue) request["favourite"] = favourite.Value;
 
-        var result = await JiraClient.PutAsync<JiraFilter>($"filter/{filterId}", request);
+        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}", request).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_delete_filter", "Deletes a filter")]
-    public static async Task<string> DeleteFilter(
+    public static string DeleteFilter(
         [McpParameter("Filter ID")] string filterId)
     {
-        await JiraClient.DeleteAsync($"filter/{filterId}");
+        JiraClient.DeleteAsync($"filter/{filterId}").GetAwaiter().GetResult();
         return $"Filter {filterId} deleted";
     }
 
     [McpTool("jira_get_favourite_filters", "Gets the current user's favourite filters")]
-    public static async Task<string> GetFavouriteFilters(
+    public static string GetFavouriteFilters(
         [McpParameter("Comma-separated fields to expand", false)] string? expand = null)
     {
         var endpoint = "filter/favourite";
@@ -122,23 +122,23 @@ public static class FilterTools
             endpoint += $"?expand={expand}";
         }
 
-        var result = await JiraClient.GetAsync<List<JiraFilter>>(endpoint);
+        var result = JiraClient.GetAsync<List<JiraFilter>>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_add_filter_to_favourites", "Adds a filter to favourites")]
-    public static async Task<string> AddFilterToFavourites(
+    public static string AddFilterToFavourites(
         [McpParameter("Filter ID")] string filterId)
     {
-        var result = await JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null);
+        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_remove_filter_from_favourites", "Removes a filter from favourites")]
-    public static async Task<string> RemoveFilterFromFavourites(
+    public static string RemoveFilterFromFavourites(
         [McpParameter("Filter ID")] string filterId)
     {
-        var result = await JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null);
+        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 }
