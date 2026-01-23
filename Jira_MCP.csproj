@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Keerukee.MCPServer.Stdio" Version="1.0.0" />
+    <PackageReference Include="Keerukee.MCPServer.Stdio" Version="1.0.2" />
   </ItemGroup>
 
 </Project>
