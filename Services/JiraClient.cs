@@ -299,4 +299,49 @@ public static class JiraClient
     /// Deserializes a JSON string to an object
     /// </summary>
     public static T? FromJson<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOptions);
+
+    /// <summary>
+    /// Converts a plain text string to Atlassian Document Format (ADF).
+    /// ADF is required by Jira Cloud V3 API for rich text fields like description, environment, and comments.
+    /// Splits text on newlines to create separate paragraph nodes.
+    /// </summary>
+    public static object ToAdfDocument(string text)
+    {
+        var paragraphs = text.Split('\n')
+            .Select(line => new Dictionary<string, object>
+            {
+                ["type"] = "paragraph",
+                ["content"] = string.IsNullOrEmpty(line)
+                    ? Array.Empty<object>()
+                    : new object[]
+                    {
+                        new Dictionary<string, object>
+                        {
+                            ["type"] = "text",
+                            ["text"] = line
+                        }
+                    }
+            })
+            .ToArray();
+
+        return new Dictionary<string, object>
+        {
+            ["type"] = "doc",
+            ["version"] = 1,
+            ["content"] = paragraphs
+        };
+    }
+
+    /// <summary>
+    /// Conditionally formats text for the Jira API.
+    /// Returns ADF object for Cloud (V3), plain string for Data Center (V2).
+    /// Returns null if input is null or empty.
+    /// </summary>
+    public static object? FormatTextForApi(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return null;
+
+        return IsCloud ? ToAdfDocument(text) : text;
+    }
 }

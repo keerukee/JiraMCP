@@ -47,7 +47,8 @@ public static class WorklogTools
         
         if (!string.IsNullOrEmpty(comment))
         {
-            request["comment"] = comment;
+            // Cloud V3: convert to ADF; Data Center V2: keep as plain text
+            request["comment"] = JiraClient.FormatTextForApi(comment);
         }
 
         var endpoint = $"issue/{issueKey}/worklog";
@@ -84,7 +85,7 @@ public static class WorklogTools
         
         if (!string.IsNullOrEmpty(timeSpent)) request["timeSpent"] = timeSpent;
         if (!string.IsNullOrEmpty(started)) request["started"] = started;
-        if (!string.IsNullOrEmpty(comment)) request["comment"] = comment;
+        if (!string.IsNullOrEmpty(comment)) request["comment"] = JiraClient.FormatTextForApi(comment); // Cloud V3: ADF; Data Center V2: plain text
 
         var endpoint = $"issue/{issueKey}/worklog/{worklogId}";
         

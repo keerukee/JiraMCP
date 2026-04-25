@@ -77,9 +77,14 @@ public record JiraIssue(
     Changelog? Changelog
 );
 
+/// <summary>
+/// Fields returned when reading a Jira issue.
+/// Note: Description and Environment are object? to support both plain text (Data Center V2)
+/// and Atlassian Document Format/ADF JSON (Cloud V3) in API responses.
+/// </summary>
 public record IssueFields(
     string? Summary,
-    string? Description,
+    object? Description,
     IssueType? IssueType,
     JiraProject? Project,
     JiraStatus? Status,
@@ -104,7 +109,8 @@ public record IssueFields(
     Votes? Votes,
     CommentContainer? Comment,
     AttachmentContainer? Attachment,
-    WorklogContainer? Worklog
+    WorklogContainer? Worklog,
+    object? Environment
 );
 
 public record RenderedFields(
@@ -205,12 +211,15 @@ public record CommentContainer(
     List<JiraComment>? Comments
 );
 
+/// <summary>
+/// Jira comment model. Body is object? to support plain text (Data Center V2) and ADF JSON (Cloud V3).
+/// </summary>
 public record JiraComment(
     string? Id,
     string? Self,
     JiraUser? Author,
     JiraUser? UpdateAuthor,
-    string? Body,
+    object? Body,
     DateTime? Created,
     DateTime? Updated,
     CommentVisibility? Visibility
@@ -252,12 +261,15 @@ public record WorklogContainer(
     List<JiraWorklog>? Worklogs
 );
 
+/// <summary>
+/// Jira worklog entry. Comment is object? to support plain text (Data Center V2) and ADF JSON (Cloud V3).
+/// </summary>
 public record JiraWorklog(
     string? Id,
     string? Self,
     JiraUser? Author,
     JiraUser? UpdateAuthor,
-    string? Comment,
+    object? Comment,
     DateTime? Created,
     DateTime? Updated,
     DateTime? Started,
@@ -481,12 +493,17 @@ public record CreateIssueRequest
     public CreateIssueFields? Fields { get; init; }
 }
 
+/// <summary>
+/// Fields for creating a new Jira issue.
+/// Description and Environment are object? to hold either plain text (Data Center V2)
+/// or ADF JSON (Cloud V3). Use JiraClient.FormatTextForApi() to set these fields.
+/// </summary>
 public record CreateIssueFields
 {
     public ProjectRef? Project { get; init; }
     public IssueTypeRef? IssueType { get; init; }
     public string? Summary { get; init; }
-    public string? Description { get; init; }
+    public object? Description { get; init; }
     public UserRef? Assignee { get; init; }
     public UserRef? Reporter { get; init; }
     public PriorityRef? Priority { get; init; }
@@ -496,6 +513,7 @@ public record CreateIssueFields
     public ParentRef? Parent { get; init; }
     public string? DueDate { get; init; }
     public TimeTrackingInput? TimeTracking { get; init; }
+    public object? Environment { get; init; }
 }
 
 public record UpdateIssueRequest
@@ -503,10 +521,15 @@ public record UpdateIssueRequest
     public UpdateIssueFields? Fields { get; init; }
 }
 
+/// <summary>
+/// Fields for updating an existing Jira issue.
+/// Description and Environment are object? to hold either plain text (Data Center V2)
+/// or ADF JSON (Cloud V3). Use JiraClient.FormatTextForApi() to set these fields.
+/// </summary>
 public record UpdateIssueFields
 {
     public string? Summary { get; init; }
-    public string? Description { get; init; }
+    public object? Description { get; init; }
     public UserRef? Assignee { get; init; }
     public PriorityRef? Priority { get; init; }
     public List<string>? Labels { get; init; }
@@ -514,6 +537,7 @@ public record UpdateIssueFields
     public List<VersionRef>? FixVersions { get; init; }
     public string? DueDate { get; init; }
     public TimeTrackingInput? TimeTracking { get; init; }
+    public object? Environment { get; init; }
 }
 
 public record ProjectRef(string? Id = null, string? Key = null);

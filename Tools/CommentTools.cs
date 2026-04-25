@@ -50,16 +50,17 @@ public static class CommentTools
         return JiraClient.ToJson(result);
     }
 
-    [McpTool("jira_add_comment", "Adds a comment to an issue")]
+    [McpTool("jira_add_comment", "Adds a comment to an issue. For Cloud V3, body uses Atlassian Document Format (ADF) automatically.")]
     public static string AddComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
-        [McpParameter("Comment body text")] string body,
+        [McpParameter("Comment body text (plain text, auto-converted to ADF for Cloud)")] string body,
         [McpParameter("Visibility type ('role' or 'group')", false)] string? visibilityType = null,
         [McpParameter("Visibility value (role name or group name)", false)] string? visibilityValue = null)
     {
         var request = new Dictionary<string, object?>
         {
-            ["body"] = body
+            // Cloud V3: convert to ADF; Data Center V2: keep as plain text
+            ["body"] = JiraClient.FormatTextForApi(body)
         };
         
         if (!string.IsNullOrEmpty(visibilityType) && !string.IsNullOrEmpty(visibilityValue))
@@ -75,17 +76,18 @@ public static class CommentTools
         return JiraClient.ToJson(result);
     }
 
-    [McpTool("jira_update_comment", "Updates an existing comment")]
+    [McpTool("jira_update_comment", "Updates an existing comment. For Cloud V3, body uses Atlassian Document Format (ADF) automatically.")]
     public static string UpdateComment(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Comment ID")] string commentId,
-        [McpParameter("New comment body text")] string body,
+        [McpParameter("New comment body text (plain text, auto-converted to ADF for Cloud)")] string body,
         [McpParameter("Visibility type ('role' or 'group')", false)] string? visibilityType = null,
         [McpParameter("Visibility value (role name or group name)", false)] string? visibilityValue = null)
     {
         var request = new Dictionary<string, object?>
         {
-            ["body"] = body
+            // Cloud V3: convert to ADF; Data Center V2: keep as plain text
+            ["body"] = JiraClient.FormatTextForApi(body)
         };
         
         if (!string.IsNullOrEmpty(visibilityType) && !string.IsNullOrEmpty(visibilityValue))
