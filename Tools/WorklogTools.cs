@@ -136,8 +136,7 @@ public static class WorklogTools
             .ToList();
         
         var request = new { ids };
-        var result = JiraClient.PostAsync<List<JiraWorklog>>("worklog/list", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("worklog/list", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_worklogs_updated_since", "Gets worklogs that have been updated since a specific time")]
@@ -151,8 +150,18 @@ public static class WorklogTools
     public static string GetTimeTracking(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var issue = JiraClient.GetAsync<JiraIssue>($"issue/{issueKey}?fields=timetracking").GetAwaiter().GetResult();
-        return JiraClient.ToJson(issue?.Fields?.TimeTracking);
+        var rawJson = JiraClient.GetStringAsync($"issue/{issueKey}?fields=timetracking").GetAwaiter().GetResult();
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(rawJson);
+            if (doc.RootElement.TryGetProperty("fields", out var fields) &&
+                fields.TryGetProperty("timetracking", out var timetracking))
+            {
+                return timetracking.GetRawText();
+            }
+        }
+        catch { }
+        return "{}";
     }
 
     [McpTool("jira_set_time_estimate", "Sets the original or remaining time estimate for an issue")]
@@ -178,8 +187,9 @@ public static class WorklogTools
             fields = new { timetracking = timeTracking }
         };
 
-        JiraClient.PutAsync<object>($"issue/{issueKey}", request).GetAwaiter().GetResult();
+        JiraClient.PutStringAsync($"issue/{issueKey}", request).GetAwaiter().GetResult();
         return $"Time estimate updated for issue {issueKey}";
     }
 }
+
 

@@ -53,8 +53,7 @@ public static class UserTools
             endpoint = $"user/search?username={Uri.EscapeDataString(query)}&startAt={startAt}&maxResults={maxResults}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_find_users_assignable_to_projects", "Finds users that can be assigned to issues in specified projects")]
@@ -71,8 +70,7 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_find_users_assignable_to_issue", "Finds users that can be assigned to a specific issue")]
@@ -89,8 +87,7 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_users_from_group", "Gets all users in a specific group")]
@@ -101,8 +98,7 @@ public static class UserTools
         [McpParameter("Maximum results to return", false)] int maxResults = 50)
     {
         var endpoint = $"group/member?groupname={Uri.EscapeDataString(groupName)}&includeInactiveUsers={includeInactiveUsers}&startAt={startAt}&maxResults={maxResults}";
-        var result = JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_groups", "Gets all groups in Jira")]
@@ -137,7 +133,7 @@ public static class UserTools
             request = new { name = userIdentifier };
         }
 
-        JiraClient.PostAsync<object>($"group/user?groupname={Uri.EscapeDataString(groupName)}", request).GetAwaiter().GetResult();
+        JiraClient.PostStringAsync($"group/user?groupname={Uri.EscapeDataString(groupName)}", request).GetAwaiter().GetResult();
         return $"User {userIdentifier} added to group {groupName}";
     }
 
@@ -187,8 +183,7 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraUser>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_user_permissions", "Gets permissions the current user has globally or on a specific project/issue")]
@@ -229,23 +224,30 @@ public static class UserTools
         {
             var accountIds = string.Join("&accountId=", identifiers.Select(Uri.EscapeDataString));
             var endpoint = $"user/bulk?accountId={accountIds}&startAt={startAt}&maxResults={maxResults}";
-            var result = JiraClient.GetAsync<PagedResult<JiraUser>>(endpoint).GetAwaiter().GetResult();
-            return JiraClient.ToJson(result);
+            return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
         }
         else
         {
             // Data Center doesn't have bulk endpoint, fetch one by one
-            var users = new List<JiraUser>();
+            var jsonElements = new List<string>();
             foreach (var username in identifiers)
             {
-                var user = JiraClient.GetAsync<JiraUser>($"user?username={Uri.EscapeDataString(username)}").GetAwaiter().GetResult();
-                if (user != null)
+                try
                 {
-                    users.Add(user);
+                    var json = JiraClient.GetStringAsync($"user?username={Uri.EscapeDataString(username)}").GetAwaiter().GetResult();
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        jsonElements.Add(json);
+                    }
+                }
+                catch
+                {
+                    // Ignore missing users in bulk operations
                 }
             }
-            return JiraClient.ToJson(users);
+            return $"[{string.Join(",", jsonElements)}]";
         }
     }
 }
+
 

@@ -18,16 +18,24 @@ public static class ServerTools
     [McpTool("jira_get_fields", "Gets all available fields in the Jira instance")]
     public static string GetFields()
     {
-        var result = JiraClient.GetAsync<List<JiraField>>("field").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("field").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_custom_fields", "Gets all custom fields in the Jira instance")]
     public static string GetCustomFields()
     {
-        var fields = JiraClient.GetAsync<List<JiraField>>("field").GetAwaiter().GetResult();
-        var customFields = fields?.Where(f => f.Custom == true).ToList();
-        return JiraClient.ToJson(customFields);
+        var rawJson = JiraClient.GetStringAsync("field").GetAwaiter().GetResult();
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(rawJson);
+            var customFields = doc.RootElement.EnumerateArray()
+                .Where(e => e.TryGetProperty("custom", out var isCustom) && isCustom.ValueKind == System.Text.Json.JsonValueKind.True)
+                .Select(e => e.Clone())
+                .ToList();
+            return JiraClient.ToJson(customFields);
+        }
+        catch { }
+        return "[]";
     }
 
     [McpTool("jira_validate_jql", "Validates a JQL query for syntax errors")]
@@ -58,14 +66,23 @@ public static class ServerTools
     {
         try
         {
-            var user = JiraClient.GetAsync<JiraUser>("myself").GetAwaiter().GetResult();
+            var userJson = JiraClient.GetStringAsync("myself").GetAwaiter().GetResult();
+            var displayName = "Unknown";
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(userJson);
+                if (doc.RootElement.TryGetProperty("displayName", out var disp)) displayName = disp.GetString() ?? "Unknown";
+                else if (doc.RootElement.TryGetProperty("name", out var nm)) displayName = nm.GetString() ?? "Unknown";
+            }
+            catch { }
+            
             return JiraClient.ToJson(new
             {
                 connected = true,
                 baseUrl = JiraClient.BaseUrl,
                 isCloud = JiraClient.IsCloud,
                 deploymentType = JiraClient.IsCloud ? "Cloud" : "Data Center / Server",
-                authenticatedUser = user?.DisplayName ?? user?.Name ?? "Unknown"
+                authenticatedUser = displayName
             });
         }
         catch (Exception ex)
@@ -102,4 +119,5 @@ public static class ServerTools
         });
     }
 }
+
 

@@ -41,8 +41,7 @@ public static class FilterTools
             endpoint += $"&expand={expand}";
         }
 
-        var result = JiraClient.GetAsync<PagedResult<JiraFilter>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_filter", "Gets a specific filter by ID")]
@@ -119,8 +118,7 @@ public static class FilterTools
             endpoint += $"?expand={expand}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraFilter>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_add_filter_to_favourites", "Adds a filter to favourites")]
@@ -137,4 +135,5 @@ public static class FilterTools
         return JiraClient.PutStringAsync($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
     }
 }
+
 

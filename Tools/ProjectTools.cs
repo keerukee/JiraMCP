@@ -28,8 +28,7 @@ public static class ProjectTools
             endpoint += $"&expand={expand}";
         }
 
-        var result = JiraClient.GetAsync<List<JiraProject>>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_project", "Gets detailed information about a specific project")]
@@ -109,8 +108,7 @@ public static class ProjectTools
     public static string GetProjectComponents(
         [McpParameter("Project key or ID")] string projectKey)
     {
-        var result = JiraClient.GetAsync<List<JiraComponent>>($"project/{projectKey}/components").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"project/{projectKey}/components").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_create_component", "Creates a new component in a project")]
@@ -159,8 +157,7 @@ public static class ProjectTools
     public static string GetProjectVersions(
         [McpParameter("Project key or ID")] string projectKey)
     {
-        var result = JiraClient.GetAsync<List<JiraVersion>>($"project/{projectKey}/versions").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"project/{projectKey}/versions").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_create_version", "Creates a new version in a project")]
@@ -246,16 +243,24 @@ public static class ProjectTools
     [McpTool("jira_get_issue_types", "Gets all issue types available in the system")]
     public static string GetIssueTypes()
     {
-        var result = JiraClient.GetAsync<List<IssueType>>("issuetype").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("issuetype").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_project_issue_types", "Gets issue types available for a specific project")]
     public static string GetProjectIssueTypes(
         [McpParameter("Project key or ID")] string projectKey)
     {
-        var result = JiraClient.GetAsync<JiraProject>($"project/{projectKey}?expand=issueTypes").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result?.IssueTypes);
+        var rawJson = JiraClient.GetStringAsync($"project/{projectKey}?expand=issueTypes").GetAwaiter().GetResult();
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(rawJson);
+            if (doc.RootElement.TryGetProperty("issueTypes", out var issueTypes))
+            {
+                return issueTypes.GetRawText();
+            }
+        }
+        catch { }
+        return "[]";
     }
 
     [McpTool("jira_get_priorities", "Gets all available priorities")]
@@ -267,23 +272,20 @@ public static class ProjectTools
     [McpTool("jira_get_statuses", "Gets all statuses available in the system")]
     public static string GetStatuses()
     {
-        var result = JiraClient.GetAsync<List<JiraStatus>>("status").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("status").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_resolutions", "Gets all available resolutions")]
     public static string GetResolutions()
     {
-        var result = JiraClient.GetAsync<List<JiraResolution>>("resolution").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("resolution").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_project_roles", "Gets all roles for a project")]
     public static string GetProjectRoles(
         [McpParameter("Project key or ID")] string projectKey)
     {
-        var result = JiraClient.GetAsync<Dictionary<string, string>>($"project/{projectKey}/role").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"project/{projectKey}/role").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_project_role", "Gets users/groups assigned to a specific role in a project")]
@@ -294,4 +296,5 @@ public static class ProjectTools
         return JiraClient.GetStringAsync($"project/{projectKey}/role/{roleId}").GetAwaiter().GetResult();
     }
 }
+
 

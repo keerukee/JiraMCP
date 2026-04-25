@@ -13,8 +13,18 @@ public static class AttachmentTools
     public static string GetAttachments(
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var issue = JiraClient.GetAsync<JiraIssue>($"issue/{issueKey}?fields=attachment").GetAwaiter().GetResult();
-        return JiraClient.ToJson(issue?.Fields?.Attachment);
+        var rawJson = JiraClient.GetStringAsync($"issue/{issueKey}?fields=attachment").GetAwaiter().GetResult();
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(rawJson);
+            if (doc.RootElement.TryGetProperty("fields", out var fields) &&
+                fields.TryGetProperty("attachment", out var attachment))
+            {
+                return attachment.GetRawText();
+            }
+        }
+        catch { }
+        return "[]";
     }
 
     [McpTool("jira_get_attachment", "Gets metadata for a specific attachment")]
@@ -31,8 +41,7 @@ public static class AttachmentTools
         [McpParameter("File name with extension (e.g., document.pdf)")] string fileName)
     {
         var fileContent = Convert.FromBase64String(base64Content);
-        var result = JiraClient.UploadFileAsync<List<JiraAttachment>>($"issue/{issueKey}/attachments", fileContent, fileName).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.UploadFileAsync<string>($"issue/{issueKey}/attachments", fileContent, fileName).GetAwaiter().GetResult() ?? "[]";
     }
 
     [McpTool("jira_delete_attachment", "Deletes an attachment")]
@@ -49,4 +58,5 @@ public static class AttachmentTools
         return JiraClient.GetStringAsync("attachment/meta").GetAwaiter().GetResult();
     }
 }
+
 
