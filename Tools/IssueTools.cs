@@ -20,8 +20,7 @@ public static class IssueTools
             endpoint += $"?expand={expand}";
         }
 
-        var issue = JiraClient.GetAsync<JiraIssue>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(issue);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_search_issues", "Searches for Jira issues using JQL (Jira Query Language)")]
@@ -31,7 +30,7 @@ public static class IssueTools
         [McpParameter("Maximum results to return (max 100)", false)] int maxResults = 50,
         [McpParameter("Comma-separated list of fields to return", false)] string? fields = null)
     {
-        SearchResult? result;
+
         var clampedMax = Math.Min(maxResults, 100);
 
         if (JiraClient.IsCloud)
@@ -49,7 +48,7 @@ public static class IssueTools
                 body["fields"] = fields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             }
 
-            result = JiraClient.PostAsync<SearchResult>("search/jql", body).GetAwaiter().GetResult();
+            return JiraClient.PostStringAsync("search/jql", body).GetAwaiter().GetResult();
         }
         else
         {
@@ -61,10 +60,8 @@ public static class IssueTools
                 endpoint += $"&fields={fields}";
             }
 
-            result = JiraClient.GetAsync<SearchResult>(endpoint).GetAwaiter().GetResult();
+            return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
         }
-
-        return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_create_issue", "Creates a new Jira issue. For Cloud V3, description uses Atlassian Document Format (ADF) automatically.")]
