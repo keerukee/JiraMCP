@@ -12,8 +12,7 @@ public static class ServerTools
     [McpTool("jira_get_server_info", "Gets information about the Jira instance")]
     public static string GetServerInfo()
     {
-        var result = JiraClient.GetAsync<ServerInfo>("serverInfo").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("serverInfo").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_fields", "Gets all available fields in the Jira instance")]
@@ -36,8 +35,7 @@ public static class ServerTools
         [McpParameter("JQL query to validate")] string jql)
     {
         var request = new { queries = new[] { jql } };
-        var result = JiraClient.PostAsync<object>("jql/parse", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("jql/parse", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_autocomplete_suggestions", "Gets JQL autocomplete suggestions")]
@@ -52,8 +50,7 @@ public static class ServerTools
             endpoint += $"&fieldValue={Uri.EscapeDataString(fieldValue)}";
         }
 
-        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_check_connection", "Checks if the Jira connection is working")]
@@ -105,3 +102,4 @@ public static class ServerTools
         });
     }
 }
+

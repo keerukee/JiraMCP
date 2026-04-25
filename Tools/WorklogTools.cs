@@ -16,8 +16,7 @@ public static class WorklogTools
         [McpParameter("Maximum results to return", false)] int maxResults = 100)
     {
         var endpoint = $"issue/{issueKey}/worklog?startAt={startAt}&maxResults={maxResults}";
-        var result = JiraClient.GetAsync<WorklogContainer>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_worklog", "Gets a specific worklog by ID")]
@@ -25,8 +24,7 @@ public static class WorklogTools
         [McpParameter("Issue key (e.g., PROJ-123)")] string issueKey,
         [McpParameter("Worklog ID")] string worklogId)
     {
-        var result = JiraClient.GetAsync<JiraWorklog>($"issue/{issueKey}/worklog/{worklogId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"issue/{issueKey}/worklog/{worklogId}").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_add_worklog", "Adds a worklog entry to an issue")]
@@ -67,8 +65,7 @@ public static class WorklogTools
             }
         }
 
-        var result = JiraClient.PostAsync<JiraWorklog>(endpoint, request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync(endpoint, request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_worklog", "Updates an existing worklog entry")]
@@ -99,8 +96,7 @@ public static class WorklogTools
             }
         }
 
-        var result = JiraClient.PutAsync<JiraWorklog>(endpoint, request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync(endpoint, request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_worklog", "Deletes a worklog entry")]
@@ -148,8 +144,7 @@ public static class WorklogTools
     public static string GetWorklogsUpdatedSince(
         [McpParameter("Unix timestamp in milliseconds to get updates since")] long since)
     {
-        var result = JiraClient.GetAsync<object>($"worklog/updated?since={since}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"worklog/updated?since={since}").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_time_tracking", "Gets the time tracking information for an issue")]
@@ -187,3 +182,4 @@ public static class WorklogTools
         return $"Time estimate updated for issue {issueKey}";
     }
 }
+

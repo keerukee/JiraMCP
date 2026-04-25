@@ -44,8 +44,7 @@ public static class ProjectTools
             endpoint += $"?expand={expand}";
         }
 
-        var result = JiraClient.GetAsync<JiraProject>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_create_project", "Creates a new Jira project")]
@@ -69,8 +68,7 @@ public static class ProjectTools
             AssigneeType: assigneeType
         );
 
-        var result = JiraClient.PostAsync<JiraProject>("project", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("project", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_project", "Updates an existing Jira project")]
@@ -96,8 +94,7 @@ public static class ProjectTools
         if (!string.IsNullOrEmpty(categoryId)) request["categoryId"] = categoryId;
         if (!string.IsNullOrEmpty(assigneeType)) request["assigneeType"] = assigneeType;
 
-        var result = JiraClient.PutAsync<JiraProject>($"project/{projectKey}", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"project/{projectKey}", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_project", "Deletes a Jira project (moves to trash on Cloud)")]
@@ -140,8 +137,7 @@ public static class ProjectTools
         }
         if (!string.IsNullOrEmpty(assigneeType)) request["assigneeType"] = assigneeType;
 
-        var result = JiraClient.PostAsync<JiraComponent>("component", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("component", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_component", "Deletes a component")]
@@ -189,8 +185,7 @@ public static class ProjectTools
         if (!string.IsNullOrEmpty(releaseDate)) request["releaseDate"] = releaseDate;
         if (!string.IsNullOrEmpty(startDate)) request["startDate"] = startDate;
 
-        var result = JiraClient.PostAsync<JiraVersion>("version", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("version", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_version", "Updates a version")]
@@ -210,8 +205,7 @@ public static class ProjectTools
         if (released.HasValue) request["released"] = released.Value;
         if (archived.HasValue) request["archived"] = archived.Value;
 
-        var result = JiraClient.PutAsync<JiraVersion>($"version/{versionId}", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"version/{versionId}", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_release_version", "Releases a version")]
@@ -225,8 +219,7 @@ public static class ProjectTools
             ["releaseDate"] = releaseDate ?? DateTime.Today.ToString("yyyy-MM-dd")
         };
 
-        var result = JiraClient.PutAsync<JiraVersion>($"version/{versionId}", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"version/{versionId}", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_version", "Deletes a version")]
@@ -268,8 +261,7 @@ public static class ProjectTools
     [McpTool("jira_get_priorities", "Gets all available priorities")]
     public static string GetPriorities()
     {
-        var result = JiraClient.GetAsync<List<JiraPriority>>("priority").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("priority").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_statuses", "Gets all statuses available in the system")]
@@ -299,7 +291,7 @@ public static class ProjectTools
         [McpParameter("Project key or ID")] string projectKey,
         [McpParameter("Role ID")] string roleId)
     {
-        var result = JiraClient.GetAsync<object>($"project/{projectKey}/role/{roleId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"project/{projectKey}/role/{roleId}").GetAwaiter().GetResult();
     }
 }
+

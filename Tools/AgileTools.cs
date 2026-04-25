@@ -236,9 +236,8 @@ public static class AgileTools
         [McpParameter("Sprint ID")] int sprintId)
     {
         // Note: This endpoint is available in Jira Software but not in the standard Agile API
-        var result = JiraClient.GetAsync<object>(
+        return JiraClient.GetStringAsync(
             $"/rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId={boardId}&sprintId={sprintId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
     }
 
     #endregion
@@ -417,9 +416,8 @@ public static class AgileTools
         [McpParameter("Board ID")] int boardId)
     {
         // Note: This uses the Greenhopper API which may not be available on all installations
-        var result = JiraClient.GetAsync<object>(
+        return JiraClient.GetStringAsync(
             $"/rest/greenhopper/1.0/rapid/charts/velocity?rapidViewId={boardId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
     }
 
     [McpTool("jira_get_burndown_chart", "Gets burndown chart data for a sprint")]
@@ -428,10 +426,10 @@ public static class AgileTools
         [McpParameter("Sprint ID")] int sprintId)
     {
         // Note: This uses the Greenhopper API which may not be available on all installations
-        var result = JiraClient.GetAsync<object>(
+        return JiraClient.GetStringAsync(
             $"/rest/greenhopper/1.0/rapid/charts/scopechangeburndownchart?rapidViewId={boardId}&sprintId={sprintId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
     }
 
     #endregion
 }
+

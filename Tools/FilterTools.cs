@@ -57,8 +57,7 @@ public static class FilterTools
             endpoint += $"?expand={expand}";
         }
 
-        var result = JiraClient.GetAsync<JiraFilter>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_create_filter", "Creates a new filter")]
@@ -80,8 +79,7 @@ public static class FilterTools
             request["description"] = description;
         }
 
-        var result = JiraClient.PostAsync<JiraFilter>("filter", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("filter", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_filter", "Updates an existing filter")]
@@ -99,8 +97,7 @@ public static class FilterTools
         if (!string.IsNullOrEmpty(description)) request["description"] = description;
         if (favourite.HasValue) request["favourite"] = favourite.Value;
 
-        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"filter/{filterId}", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_filter", "Deletes a filter")]
@@ -130,15 +127,14 @@ public static class FilterTools
     public static string AddFilterToFavourites(
         [McpParameter("Filter ID")] string filterId)
     {
-        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_remove_filter_from_favourites", "Removes a filter from favourites")]
     public static string RemoveFilterFromFavourites(
         [McpParameter("Filter ID")] string filterId)
     {
-        var result = JiraClient.PutAsync<JiraFilter>($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"filter/{filterId}/favourite", null).GetAwaiter().GetResult();
     }
 }
+

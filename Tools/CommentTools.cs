@@ -29,8 +29,7 @@ public static class CommentTools
             endpoint += "&expand=renderedBody";
         }
 
-        var result = JiraClient.GetAsync<CommentContainer>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_comment", "Gets a specific comment by ID")]
@@ -46,8 +45,7 @@ public static class CommentTools
             endpoint += "?expand=renderedBody";
         }
 
-        var result = JiraClient.GetAsync<JiraComment>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_add_comment", "Adds a comment to an issue. For Cloud V3, body uses Atlassian Document Format (ADF) automatically.")]
@@ -72,8 +70,7 @@ public static class CommentTools
             };
         }
 
-        var result = JiraClient.PostAsync<JiraComment>($"issue/{issueKey}/comment", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync($"issue/{issueKey}/comment", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_comment", "Updates an existing comment. For Cloud V3, body uses Atlassian Document Format (ADF) automatically.")]
@@ -99,8 +96,7 @@ public static class CommentTools
             };
         }
 
-        var result = JiraClient.PutAsync<JiraComment>($"issue/{issueKey}/comment/{commentId}", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PutStringAsync($"issue/{issueKey}/comment/{commentId}", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_delete_comment", "Deletes a comment from an issue")]
@@ -112,3 +108,4 @@ public static class CommentTools
         return $"Comment {commentId} deleted from issue {issueKey}";
     }
 }
+

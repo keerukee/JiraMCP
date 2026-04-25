@@ -126,8 +126,7 @@ public static class IssueTools
             }
         };
 
-        var result = JiraClient.PostAsync<CreateIssueResponse>("issue", request).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.PostStringAsync("issue", request).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_update_issue", "Updates an existing Jira issue. For Cloud V3, description uses Atlassian Document Format (ADF) automatically.")]
@@ -187,8 +186,7 @@ public static class IssueTools
     public static string GetTransitions(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var result = JiraClient.GetAsync<TransitionsResult>($"issue/{issueKey}/transitions").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"issue/{issueKey}/transitions").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_transition_issue", "Transitions an issue to a new status")]
@@ -304,8 +302,7 @@ public static class IssueTools
     [McpTool("jira_get_link_types", "Gets all available issue link types")]
     public static string GetLinkTypes()
     {
-        var result = JiraClient.GetAsync<object>("issueLinkType").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("issueLinkType").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_watch_issue", "Adds the current user as a watcher to an issue")]
@@ -335,8 +332,7 @@ public static class IssueTools
     public static string GetWatchers(
         [McpParameter("The issue key (e.g., PROJ-123)")] string issueKey)
     {
-        var result = JiraClient.GetAsync<object>($"issue/{issueKey}/watchers").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"issue/{issueKey}/watchers").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_vote_issue", "Adds a vote to an issue")]
@@ -361,8 +357,23 @@ public static class IssueTools
         [McpParameter("Starting index for pagination", false)] int startAt = 0,
         [McpParameter("Maximum results to return", false)] int maxResults = 100)
     {
-        var issue = JiraClient.GetAsync<JiraIssue>(
+        var rawJson = JiraClient.GetStringAsync(
             $"issue/{issueKey}?expand=changelog&startAt={startAt}&maxResults={maxResults}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(issue?.Changelog);
+            
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(rawJson);
+            if (doc.RootElement.TryGetProperty("changelog", out var changelog))
+            {
+                return changelog.GetRawText();
+            }
+        }
+        catch
+        {
+            // Fallback to returning raw JSON if parsing fails
+        }
+        
+        return rawJson;
     }
 }
+

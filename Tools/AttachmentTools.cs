@@ -21,8 +21,7 @@ public static class AttachmentTools
     public static string GetAttachment(
         [McpParameter("Attachment ID")] string attachmentId)
     {
-        var result = JiraClient.GetAsync<JiraAttachment>($"attachment/{attachmentId}").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync($"attachment/{attachmentId}").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_add_attachment_from_base64", "Adds an attachment to an issue from base64 encoded content")]
@@ -47,7 +46,7 @@ public static class AttachmentTools
     [McpTool("jira_get_attachment_metadata", "Gets global attachment settings")]
     public static string GetAttachmentMeta()
     {
-        var result = JiraClient.GetAsync<object>("attachment/meta").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("attachment/meta").GetAwaiter().GetResult();
     }
 }
+

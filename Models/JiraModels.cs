@@ -500,20 +500,20 @@ public record CreateIssueRequest
 /// </summary>
 public record CreateIssueFields
 {
-    public ProjectRef? Project { get; init; }
-    public IssueTypeRef? IssueType { get; init; }
-    public string? Summary { get; init; }
-    public object? Description { get; init; }
-    public UserRef? Assignee { get; init; }
-    public UserRef? Reporter { get; init; }
-    public PriorityRef? Priority { get; init; }
-    public List<string>? Labels { get; init; }
-    public List<ComponentRef>? Components { get; init; }
-    public List<VersionRef>? FixVersions { get; init; }
-    public ParentRef? Parent { get; init; }
-    public string? DueDate { get; init; }
-    public TimeTrackingInput? TimeTracking { get; init; }
-    public object? Environment { get; init; }
+    [JsonPropertyName("project")] public ProjectRef? Project { get; init; }
+    [JsonPropertyName("issuetype")] public IssueTypeRef? IssueType { get; init; }
+    [JsonPropertyName("summary")] public string? Summary { get; init; }
+    [JsonPropertyName("description")] public object? Description { get; init; }
+    [JsonPropertyName("assignee")] public UserRef? Assignee { get; init; }
+    [JsonPropertyName("reporter")] public UserRef? Reporter { get; init; }
+    [JsonPropertyName("priority")] public PriorityRef? Priority { get; init; }
+    [JsonPropertyName("labels")] public List<string>? Labels { get; init; }
+    [JsonPropertyName("components")] public List<ComponentRef>? Components { get; init; }
+    [JsonPropertyName("fixVersions")] public List<VersionRef>? FixVersions { get; init; }
+    [JsonPropertyName("parent")] public ParentRef? Parent { get; init; }
+    [JsonPropertyName("duedate")] public string? DueDate { get; init; }
+    [JsonPropertyName("timetracking")] public TimeTrackingInput? TimeTracking { get; init; }
+    [JsonPropertyName("environment")] public object? Environment { get; init; }
 }
 
 public record UpdateIssueRequest
@@ -528,16 +528,16 @@ public record UpdateIssueRequest
 /// </summary>
 public record UpdateIssueFields
 {
-    public string? Summary { get; init; }
-    public object? Description { get; init; }
-    public UserRef? Assignee { get; init; }
-    public PriorityRef? Priority { get; init; }
-    public List<string>? Labels { get; init; }
-    public List<ComponentRef>? Components { get; init; }
-    public List<VersionRef>? FixVersions { get; init; }
-    public string? DueDate { get; init; }
-    public TimeTrackingInput? TimeTracking { get; init; }
-    public object? Environment { get; init; }
+    [JsonPropertyName("summary")] public string? Summary { get; init; }
+    [JsonPropertyName("description")] public object? Description { get; init; }
+    [JsonPropertyName("assignee")] public UserRef? Assignee { get; init; }
+    [JsonPropertyName("priority")] public PriorityRef? Priority { get; init; }
+    [JsonPropertyName("labels")] public List<string>? Labels { get; init; }
+    [JsonPropertyName("components")] public List<ComponentRef>? Components { get; init; }
+    [JsonPropertyName("fixVersions")] public List<VersionRef>? FixVersions { get; init; }
+    [JsonPropertyName("duedate")] public string? DueDate { get; init; }
+    [JsonPropertyName("timetracking")] public TimeTrackingInput? TimeTracking { get; init; }
+    [JsonPropertyName("environment")] public object? Environment { get; init; }
 }
 
 public record ProjectRef(string? Id = null, string? Key = null);

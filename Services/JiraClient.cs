@@ -150,6 +150,26 @@ public static class JiraClient
     }
 
     /// <summary>
+    /// Sends a GET request to the Jira API and returns the raw JSON string
+    /// </summary>
+    public static async Task<string> GetStringAsync(string endpoint)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, GetApiUrl(endpoint));
+        request.Headers.Authorization = GetAuthHeader();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Jira API error ({response.StatusCode}): {content}");
+        }
+
+        return content;
+    }
+
+    /// <summary>
     /// Sends a GET request to the Jira API
     /// </summary>
     public static async Task<T?> GetAsync<T>(string endpoint)
@@ -170,6 +190,26 @@ public static class JiraClient
     }
 
     /// <summary>
+    /// Sends a GET request to the Jira Agile API and returns the raw JSON string
+    /// </summary>
+    public static async Task<string> GetAgileStringAsync(string endpoint)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, GetAgileApiUrl(endpoint));
+        request.Headers.Authorization = GetAuthHeader();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Jira Agile API error ({response.StatusCode}): {content}");
+        }
+
+        return content;
+    }
+
+    /// <summary>
     /// Sends a GET request to the Jira Agile API
     /// </summary>
     public static async Task<T?> GetAgileAsync<T>(string endpoint)
@@ -187,6 +227,32 @@ public static class JiraClient
         }
 
         return JsonSerializer.Deserialize<T>(content, _jsonOptions);
+    }
+
+    /// <summary>
+    /// Sends a POST request to the Jira API and returns raw JSON string
+    /// </summary>
+    public static async Task<string> PostStringAsync(string endpoint, object? body = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, GetApiUrl(endpoint));
+        request.Headers.Authorization = GetAuthHeader();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        if (body != null)
+        {
+            var json = JsonSerializer.Serialize(body, _jsonOptions);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Jira API error ({response.StatusCode}): {content}");
+        }
+
+        return content;
     }
 
     /// <summary>
@@ -221,6 +287,32 @@ public static class JiraClient
     }
 
     /// <summary>
+    /// Sends a POST request to the Jira Agile API and returns raw JSON string
+    /// </summary>
+    public static async Task<string> PostAgileStringAsync(string endpoint, object? body = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, GetAgileApiUrl(endpoint));
+        request.Headers.Authorization = GetAuthHeader();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        if (body != null)
+        {
+            var json = JsonSerializer.Serialize(body, _jsonOptions);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Jira Agile API error ({response.StatusCode}): {content}");
+        }
+
+        return content;
+    }
+
+    /// <summary>
     /// Sends a POST request to the Jira Agile API
     /// </summary>
     public static async Task<T?> PostAgileAsync<T>(string endpoint, object? body = null)
@@ -249,6 +341,32 @@ public static class JiraClient
         }
 
         return JsonSerializer.Deserialize<T>(content, _jsonOptions);
+    }
+
+    /// <summary>
+    /// Sends a PUT request to the Jira API and returns raw JSON string
+    /// </summary>
+    public static async Task<string> PutStringAsync(string endpoint, object? body = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Put, GetApiUrl(endpoint));
+        request.Headers.Authorization = GetAuthHeader();
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        if (body != null)
+        {
+            var json = JsonSerializer.Serialize(body, _jsonOptions);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        var response = await _httpClient.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Jira API error ({response.StatusCode}): {content}");
+        }
+
+        return content;
     }
 
     /// <summary>

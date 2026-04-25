@@ -12,8 +12,7 @@ public static class UserTools
     [McpTool("jira_get_current_user", "Gets information about the currently authenticated user")]
     public static string GetCurrentUser()
     {
-        var result = JiraClient.GetAsync<JiraUser>("myself").GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync("myself").GetAwaiter().GetResult();
     }
 
     [McpTool("jira_get_user", "Gets information about a specific user")]
@@ -32,8 +31,7 @@ public static class UserTools
             endpoint = $"user?username={Uri.EscapeDataString(userIdentifier)}";
         }
 
-        var result = JiraClient.GetAsync<JiraUser>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_search_users", "Searches for users by name, email, or username")]
@@ -120,8 +118,7 @@ public static class UserTools
             endpoint += $"&query={Uri.EscapeDataString(query)}";
         }
 
-        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_add_user_to_group", "Adds a user to a group (requires admin permissions)")]
@@ -217,8 +214,7 @@ public static class UserTools
             endpoint += "?" + string.Join("&", queryParams);
         }
 
-        var result = JiraClient.GetAsync<object>(endpoint).GetAwaiter().GetResult();
-        return JiraClient.ToJson(result);
+        return JiraClient.GetStringAsync(endpoint).GetAwaiter().GetResult();
     }
 
     [McpTool("jira_bulk_get_users", "Gets multiple users by their account IDs (Cloud) or usernames (Data Center)")]
@@ -252,3 +248,4 @@ public static class UserTools
         }
     }
 }
+
