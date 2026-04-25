@@ -31,14 +31,39 @@ public static class IssueTools
         [McpParameter("Maximum results to return (max 100)", false)] int maxResults = 50,
         [McpParameter("Comma-separated list of fields to return", false)] string? fields = null)
     {
-        var endpoint = $"search?jql={Uri.EscapeDataString(jql)}&startAt={startAt}&maxResults={Math.Min(maxResults, 100)}";
-        
-        if (!string.IsNullOrEmpty(fields))
+        SearchResult? result;
+        var clampedMax = Math.Min(maxResults, 100);
+
+        if (JiraClient.IsCloud)
         {
-            endpoint += $"&fields={fields}";
+            // Jira Cloud has removed GET /rest/api/3/search — use POST /rest/api/3/search/jql instead
+            var body = new Dictionary<string, object>
+            {
+                ["jql"] = jql,
+                ["startAt"] = startAt,
+                ["maxResults"] = clampedMax
+            };
+
+            if (!string.IsNullOrEmpty(fields))
+            {
+                body["fields"] = fields.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
+
+            result = JiraClient.PostAsync<SearchResult>("search/jql", body).GetAwaiter().GetResult();
+        }
+        else
+        {
+            // Data Center still supports the classic GET search endpoint
+            var endpoint = $"search?jql={Uri.EscapeDataString(jql)}&startAt={startAt}&maxResults={clampedMax}";
+
+            if (!string.IsNullOrEmpty(fields))
+            {
+                endpoint += $"&fields={fields}";
+            }
+
+            result = JiraClient.GetAsync<SearchResult>(endpoint).GetAwaiter().GetResult();
         }
 
-        var result = JiraClient.GetAsync<SearchResult>(endpoint).GetAwaiter().GetResult();
         return JiraClient.ToJson(result);
     }
 

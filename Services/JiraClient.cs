@@ -1,9 +1,56 @@
 using System.Net.Http.Headers;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace JiraMcp.Services;
+
+/// <summary>
+/// Handles Jira's ISO 8601 datetime strings whose timezone offset omits the colon
+/// (e.g. "2022-07-28T11:04:17.000+0000" instead of "+00:00").
+/// System.Text.Json's default parser rejects the colon-less form.
+/// </summary>
+public class JiraDateTimeConverter : JsonConverter<DateTime>
+{
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var dateString = reader.GetString();
+        return DateTime.Parse(dateString!, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture));
+    }
+}
+
+/// <summary>
+/// Nullable variant of <see cref="JiraDateTimeConverter"/> for DateTime? fields
+/// such as ResolutionDate and DueDate which may be null for unresolved issues.
+/// </summary>
+public class JiraNullableDateTimeConverter : JsonConverter<DateTime?>
+{
+    public override DateTime? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+            return null;
+
+        var dateString = reader.GetString();
+        if (string.IsNullOrEmpty(dateString))
+            return null;
+
+        return DateTime.Parse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime? value, JsonSerializerOptions options)
+    {
+        if (value.HasValue)
+            writer.WriteStringValue(value.Value.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture));
+        else
+            writer.WriteNullValue();
+    }
+}
 
 /// <summary>
 /// HTTP client for communicating with Jira REST API (both Cloud and Data Center)
@@ -15,7 +62,12 @@ public static class JiraClient
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters =
+        {
+            new JiraDateTimeConverter(),
+            new JiraNullableDateTimeConverter()
+        }
     };
 
     /// <summary>
